@@ -82,6 +82,7 @@ jobs:
         uses: orhun/git-cliff-action@v4
         with:
           config: .github/cliff.toml
+          args: --latest
         env:
           OUTPUT: CHANGES.md
 
