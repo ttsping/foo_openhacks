@@ -80,7 +80,7 @@ LRESULT OpenHacksCore::OnNCHitTest(HWND wnd, WPARAM wp, LPARAM lp)
 
 bool OpenHacksCore::OnSetCursor(HWND wnd, WPARAM wp, LPARAM lp)
 {
-    if (OpenHacksVars::MainWindowFrameStyle != static_cast<int32_t>(WindowFrameStyle::NoBorder))
+    if (OpenHacksVars::MainWindowFrameStyle != WindowFrameStyleNoBorder)
         return false;
 
     const int32_t hittest = (int32_t)LOWORD(lp);
@@ -124,7 +124,7 @@ LRESULT OpenHacksCore::OpenHacksMainWindowProc(HWND wnd, UINT msg, WPARAM wp, LP
         break;
 
     case WM_NCACTIVATE:
-        if (OpenHacksVars::MainWindowFrameStyle == WindowFrameStyle::NoBorder)
+        if (OpenHacksVars::MainWindowFrameStyle == WindowFrameStyleNoBorder)
             return CallWindowProc(mMainWindowOriginProc, wnd, msg, wp, -1);
         break;
 

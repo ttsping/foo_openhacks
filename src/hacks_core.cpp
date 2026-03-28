@@ -32,7 +32,19 @@ void OpenHacksCore::Initialize()
 
     if (HWND window = core_api::get_main_window())
     {
-        ApplyMainWindowFrameStyle(static_cast<WindowFrameStyle>((int32_t)OpenHacksVars::MainWindowFrameStyle));
+        // Restore saved window state from persistent storage
+        auto& savedWindowData = OpenHacksVars::SavedWindowState.get_value();
+        if (savedWindowData.wp.rcNormalPosition.right > savedWindowData.wp.rcNormalPosition.left &&
+            savedWindowData.wp.rcNormalPosition.bottom > savedWindowData.wp.rcNormalPosition.top)
+        {
+            mSavedWindowState = savedWindowData.ToWindowState();
+        }
+
+        auto newStyle = static_cast<WindowFrameStyle>((int32_t)OpenHacksVars::MainWindowFrameStyle);
+        if (mSavedWindowState.has_value() && (newStyle == WindowFrameStyleNoCaption))
+            newStyle = WindowFrameStyleNoBorder;
+
+        ApplyMainWindowFrameStyle(newStyle);
 
         if (HWND rebarWindow = FindWindowExW(window, nullptr, kDUIRebarWindowClassName.data(), nullptr))
         {
@@ -151,58 +163,13 @@ bool OpenHacksCore::CheckIncompatibleComponents()
 void OpenHacksCore::ApplyMainWindowFrameStyle(WindowFrameStyle newStyle)
 {
     HWND mainWindow = core_api::get_main_window();
-
-    // Check if window is maximized before style change
-    WINDOWPLACEMENT wp = { sizeof(WINDOWPLACEMENT) };
-    GetWindowPlacement(mainWindow, &wp);
-    bool wasMaximized = (wp.showCmd == SW_SHOWMAXIMIZED);
-
-    const LONG currentStyle = static_cast<LONG>(GetWindowLongPtr(mainWindow, GWL_STYLE));
-    LONG style = currentStyle;
-    switch (newStyle)
+    Utility::ApplyWindowFrameStyle(mainWindow, newStyle);
+    // Handle shadow for NoBorder style
+    if (newStyle == WindowFrameStyleNoBorder)
     {
-    case WindowFrameStyle::Default:
-        style |= (WS_CAPTION | WS_THICKFRAME);
-        break;
-
-    case WindowFrameStyle::NoCaption:
-        style |= WS_THICKFRAME;
-        style &= ~(WS_CAPTION);
-        break;
-
-    case WindowFrameStyle::NoBorder:
-        style &= ~(WS_CAPTION | WS_THICKFRAME);
-        break;
-
-    default:
-        break;
-    }
-
-    if (currentStyle == style)
-        return;
-
-    SetWindowLongPtr(mainWindow, GWL_STYLE, style);
-
-    if (newStyle == WindowFrameStyle::NoBorder)
-        Utility::EnableWindowShadow(mainWindow, true);
-
-    // notify frame changes
-    SetWindowPos(mainWindow, HWND_TOP, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
-
-    // Fix: Force fullscreen for maximized NoBorder windows to cover taskbar
-    if (wasMaximized && newStyle == WindowFrameStyle::NoBorder)
-    {
-        if (HMONITOR monitor = MonitorFromWindow(mainWindow, MONITOR_DEFAULTTONEAREST))
-        {
-            MONITORINFO mi = { sizeof(MONITORINFO) };
-            if (GetMonitorInfo(monitor, &mi))
-            {
-                SetWindowPos(mainWindow, HWND_TOP,
-                    mi.rcMonitor.left, mi.rcMonitor.top,
-                    mi.rcMonitor.right - mi.rcMonitor.left,
-                    mi.rcMonitor.bottom - mi.rcMonitor.top,
-                    SWP_NOZORDER | SWP_NOACTIVATE);
-            }
-        }
+        // Check if window is maximized - if so, don't enable shadow
+        // (Maximize disables shadow, we shouldn't re-enable it)
+        const bool isMaximized = Utility::IsMaximized(mainWindow) || mSavedWindowState.has_value();
+        Utility::EnableWindowShadow(mainWindow, isMaximized ? false : true);
     }
 }

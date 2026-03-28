@@ -12,11 +12,14 @@ static const GUID cfg_guid_show_status_bar = {0xaed3366f, 0xc49d, 0x4a57, {0x9b,
 static const GUID cfg_guid_main_window_frame_style = {0x47377272, 0xb6a9, 0x4181, {0xbe, 0x9a, 0xf2, 0xf7, 0x81, 0x77, 0x12, 0xcf}};
 // {F8A0EA9D-3ACC-410A-ABF7-814065A8849D}
 static const GUID cfg_guid_pseudo_caption = {0xf8a0ea9d, 0x3acc, 0x410a, {0xab, 0xf7, 0x81, 0x40, 0x65, 0xa8, 0x84, 0x9d}};
+// {C1E2B3D4-5678-90AB-CDEF-1234567890AB}
+static const GUID cfg_guid_saved_window_state = {0xc1e2b3d4, 0x5678, 0x90ab, {0xcd, 0xef, 0x12, 0x34, 0x56, 0x78, 0x90, 0xab}};
 
 cfg_bool ShowMainMenu(cfg_guid_show_main_menu, true);
 cfg_bool ShowStatusBar(cfg_guid_show_status_bar, true);
 cfg_int MainWindowFrameStyle(cfg_guid_main_window_frame_style, 0);
 cfg_struct_t<PseudoCaptionParam> PseudoCaptionSettings(cfg_guid_pseudo_caption);
+cfg_struct_t<WindowStateData> SavedWindowState(cfg_guid_saved_window_state);
 
 // runtime vars
 uint32_t DPI = USER_DEFAULT_SCREEN_DPI;

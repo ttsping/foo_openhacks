@@ -1,17 +1,12 @@
 #pragma once
+#include <optional>
+#include "win32_utils.h"
 
 enum HacksInitErrors : uint32_t
 {
     NoError = 0,
     HooksInstallError = 1 << 0,
     IncompatibleComponentInstalled = 1 << 1,
-};
-
-enum WindowFrameStyle
-{
-    Default = 0,
-    NoCaption,
-    NoBorder,
 };
 
 class OpenHacksCore
@@ -38,6 +33,9 @@ public:
     bool CheckIncompatibleComponents();
 
     void ApplyMainWindowFrameStyle(WindowFrameStyle newStyle);
+
+    // Window state accessors for maximize/restore operations
+    std::optional<WindowState>& SavedWindowState() { return mSavedWindowState; }
 
 private:
     FORCEINLINE static LRESULT CALLBACK StaticOpenHacksMainWindowProc(HWND wnd, UINT msg, WPARAM wp, LPARAM lp)
@@ -106,4 +104,6 @@ private:
 
     uint32_t mInitErrors = HacksInitErrors::NoError;
     DWORD mInstallHooksWin32Error = ERROR_SUCCESS;
+
+    std::optional<WindowState> mSavedWindowState;
 };

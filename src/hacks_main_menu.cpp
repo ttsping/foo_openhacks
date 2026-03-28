@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "hacks_vars.h"
 #include "hacks_core.h"
+#include "win32_utils.h"
 
 namespace
 {
@@ -77,11 +78,40 @@ public:
             break;
 
         case cmd_maximize:
-            ShowWindow(core_api::get_main_window(), SW_MAXIMIZE);
+            {
+                HWND mainWindow = core_api::get_main_window();
+                auto& savedState = OpenHacksCore::Get().SavedWindowState();
+                // Initialize saved state if not already
+                if (!savedState.has_value())
+                    savedState.emplace();
+                Utility::Maximize(mainWindow, savedState.value());
+                // Save to persistent storage
+                OpenHacksVars::SavedWindowState.get_value().FromWindowState(savedState.value());
+            }
             break;
 
         case cmd_restore:
-            ShowWindow(core_api::get_main_window(), SW_RESTORE);
+            {
+                HWND mainWindow = core_api::get_main_window();
+                auto& savedState = OpenHacksCore::Get().SavedWindowState();
+                // Check if minimized - use standard restore
+                if (Utility::IsMinimized(mainWindow))
+                {
+                    ShowWindow(mainWindow, SW_RESTORE);
+                }
+                else if (savedState.has_value())
+                {
+                    Utility::Restore(mainWindow, savedState.value());
+                    savedState.reset();
+                    // Clear persistent storage
+                    OpenHacksVars::SavedWindowState.get_value() = WindowStateData();
+                }
+                else
+                {
+                    // No saved state - use standard restore
+                    ShowWindow(mainWindow, SW_RESTORE);
+                }
+            }
             break;
 
         default:
@@ -112,10 +142,11 @@ public:
                 {
                     p_flags |= flag_defaulthidden;
                     HWND mainWindow = core_api::get_main_window();
-                    WINDOWPLACEMENT wp = { sizeof(WINDOWPLACEMENT) };
-                    GetWindowPlacement(mainWindow, &wp);
-                    bool isMaximized = (wp.showCmd == SW_SHOWMAXIMIZED);
-                    bool isMinimized = (wp.showCmd == SW_SHOWMINIMIZED);
+                    // For custom maximize (NoCaption/NoBorder), check saved state
+                    // For standard maximize (Default), use Utility::IsMaximized()
+                    bool isCustomMaximized = OpenHacksCore::Get().SavedWindowState().has_value();
+                    bool isMaximized = Utility::IsMaximized(mainWindow) || isCustomMaximized;
+                    bool isMinimized = Utility::IsMinimized(mainWindow);
                     // Maximize: disabled when already maximized
                     // Restore: disabled when window is normal (not maximized, not minimized)
                     if (p_index == cmd_maximize && isMaximized)

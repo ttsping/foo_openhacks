@@ -135,7 +135,7 @@ LRESULT OpenHacksCore::OpenHacksGetMessageProc(int code, WPARAM wp, LPARAM lp)
 
 void OpenHacksCore::OnHookMouseMove(LPMSG msg)
 {
-    if (OpenHacksVars::MainWindowFrameStyle != WindowFrameStyle::NoBorder)
+    if (OpenHacksVars::MainWindowFrameStyle != WindowFrameStyleNoBorder)
         return;
 
     GUITHREADINFO threadInfo = {};
@@ -162,7 +162,7 @@ void OpenHacksCore::OnHookMouseMove(LPMSG msg)
 
 void OpenHacksCore::OnHookLButtonDown(LPMSG msg)
 {
-    if (OpenHacksVars::MainWindowFrameStyle == WindowFrameStyle::Default)
+    if (OpenHacksVars::MainWindowFrameStyle == WindowFrameStyleDefault)
         return;
 
     GUITHREADINFO threadInfo = {};
@@ -185,7 +185,7 @@ void OpenHacksCore::OnHookLButtonDown(LPMSG msg)
             return;
         }
 
-        if (OpenHacksVars::MainWindowFrameStyle == WindowFrameStyle::NoBorder)
+        if (OpenHacksVars::MainWindowFrameStyle == WindowFrameStyleNoBorder)
         {
             // simulate resizing
             const Rect rectForNonSizeing = GetRectForNonSizing();
