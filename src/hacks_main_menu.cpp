@@ -14,6 +14,7 @@ public:
         cmd_show_status_bar,
         cmd_maximize,
         cmd_restore,
+        cmd_fullscreen,
         cmd_total
     };
 
@@ -50,6 +51,10 @@ public:
             p_out = "Restore";
             break;
 
+        case cmd_fullscreen:
+            p_out = "Fullscreen";
+            break;
+
         default:
             uBugCheck();
         }
@@ -63,6 +68,11 @@ public:
     GUID get_parent() override
     {
         return mainmenu_groups::view;
+    }
+
+    t_uint32 get_sort_priority() override
+    { 
+        return sort_priority_base + 1;
     }
 
     void execute(t_uint32 p_index, service_ptr_t<service_base> p_callback) override
@@ -114,6 +124,10 @@ public:
             }
             break;
 
+        case cmd_fullscreen:
+            OpenHacksCore::Get().ToggleFullscreen();
+            break;
+
         default:
             uBugCheck();
         }
@@ -153,6 +167,15 @@ public:
                         p_flags |= flag_disabled;
                     else if (p_index == cmd_restore && !isMaximized && !isMinimized)
                         p_flags |= flag_disabled;
+                }
+                break;
+
+            case cmd_fullscreen:
+                // Fullscreen is always visible (no flag_defaulthidden)
+                // Show checkmark when in fullscreen mode
+                {
+                    HWND mainWindow = core_api::get_main_window();
+                    p_flags |= (Utility::IsFullscreen(mainWindow) ? flag_checked : 0);
                 }
                 break;
 

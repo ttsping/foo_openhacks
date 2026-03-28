@@ -34,6 +34,9 @@ public:
 
     void ApplyMainWindowFrameStyle(WindowFrameStyle newStyle);
 
+    // Fullscreen operations
+    void ToggleFullscreen();
+
     // Window state accessors for maximize/restore operations
     std::optional<WindowState>& SavedWindowState() { return mSavedWindowState; }
 

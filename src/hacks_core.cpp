@@ -40,11 +40,19 @@ void OpenHacksCore::Initialize()
             mSavedWindowState = savedWindowData.ToWindowState();
         }
 
-        auto newStyle = static_cast<WindowFrameStyle>((int32_t)OpenHacksVars::MainWindowFrameStyle);
-        if (mSavedWindowState.has_value() && (newStyle == WindowFrameStyleNoCaption))
-            newStyle = WindowFrameStyleNoBorder;
+        if (mSavedWindowState.has_value() && mSavedWindowState->fullscreen)
+        {
+            WindowState state = {};
+            Utility::EnterFullscreen(window, state);
+        }
+        else
+        {
+            auto newStyle = static_cast<WindowFrameStyle>((int32_t)OpenHacksVars::MainWindowFrameStyle);
+            if (mSavedWindowState.has_value() && (newStyle == WindowFrameStyleNoCaption))
+                newStyle = WindowFrameStyleNoBorder;
 
-        ApplyMainWindowFrameStyle(newStyle);
+            ApplyMainWindowFrameStyle(newStyle);
+        }
 
         if (HWND rebarWindow = FindWindowExW(window, nullptr, kDUIRebarWindowClassName.data(), nullptr))
         {
@@ -171,5 +179,49 @@ void OpenHacksCore::ApplyMainWindowFrameStyle(WindowFrameStyle newStyle)
         // (Maximize disables shadow, we shouldn't re-enable it)
         const bool isMaximized = Utility::IsMaximized(mainWindow) || mSavedWindowState.has_value();
         Utility::EnableWindowShadow(mainWindow, isMaximized ? false : true);
+    }
+}
+
+void OpenHacksCore::ToggleFullscreen()
+{
+    HWND mainWindow = core_api::get_main_window();
+    if (mainWindow == nullptr)
+        return;
+
+    if (!Utility::IsFullscreen(mainWindow))
+    {
+        // Enter fullscreen
+        // Save current window state
+        auto& state = mSavedWindowState.emplace();
+        state.fullscreen = true;
+        state.style = static_cast<DWORD>(GetWindowLongPtr(mainWindow, GWL_STYLE));
+        GetWindowPlacement(mainWindow, &state.wp);
+        
+        Utility::EnterFullscreen(mainWindow, mSavedWindowState.value());
+        
+        // Mark fullscreen state in persistent storage
+        OpenHacksVars::SavedWindowState.get_value().FromWindowState(state);
+    }
+    else
+    {
+        // Exit fullscreen
+        if (mSavedWindowState.has_value())
+        {
+            Utility::ExitFullscreen(mainWindow, mSavedWindowState.value());
+            mSavedWindowState.reset();
+            
+            // Clear fullscreen state in persistent storage
+            OpenHacksVars::SavedWindowState.get_value() = WindowStateData();
+        }
+        else
+        {
+            const auto newStyle = static_cast<WindowFrameStyle>((int32_t)OpenHacksVars::MainWindowFrameStyle);
+            ApplyMainWindowFrameStyle(newStyle);
+
+            RECT rect = {};
+            GetWindowRect(mainWindow, &rect);
+            OffsetRect(&rect, 10, 10);
+            SetWindowPos(mainWindow, nullptr, rect.left, rect.top, 0, 0, SWP_NOACTIVATE | SWP_NOSIZE | SWP_NOOWNERZORDER | SWP_NOZORDER);
+        }
     }
 }

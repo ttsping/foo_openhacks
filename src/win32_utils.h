@@ -12,6 +12,7 @@ enum WindowFrameStyle
 
 struct WindowState
 {
+    bool fullscreen = false;
     DWORD style = 0;
     WINDOWPLACEMENT wp = { sizeof(WINDOWPLACEMENT) };
 };
@@ -45,4 +46,9 @@ void Restore(HWND wnd, WindowState& state);
 bool IsMaximized(HWND wnd);
 bool IsMinimized(HWND wnd);
 void ApplyWindowFrameStyle(HWND wnd, WindowFrameStyle style);
+
+// Fullscreen management
+void EnterFullscreen(HWND wnd, WindowState& state);
+void ExitFullscreen(HWND wnd, WindowState& state);
+bool IsFullscreen(HWND wnd);
 } // namespace Utility

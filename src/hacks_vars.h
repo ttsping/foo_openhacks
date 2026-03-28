@@ -94,15 +94,17 @@ struct PseudoCaptionParam
     }
 };
 
-// Saved window state for custom maximize/restore
+// Saved window state for custom maximize/restore and fullscreen
 struct WindowStateData
 {
+    bool fullscreen = false;
     DWORD style = 0;
     WINDOWPLACEMENT wp = { sizeof(WINDOWPLACEMENT) };
     int32_t reserved[8] = {};
 
     void FromWindowState(const WindowState& state)
     {
+        fullscreen = state.fullscreen;
         style = state.style;
         wp = state.wp;
     }
@@ -110,6 +112,7 @@ struct WindowStateData
     WindowState ToWindowState() const
     {
         WindowState state;
+        state.fullscreen = fullscreen;
         state.style = style;
         state.wp = wp;
         return state;

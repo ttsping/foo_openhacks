@@ -275,4 +275,88 @@ void ApplyWindowFrameStyle(HWND wnd, WindowFrameStyle style)
     SetWindowPos(wnd, HWND_TOP, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 }
 
+void EnterFullscreen(HWND wnd, WindowState& state)
+{
+    // Save current window state
+    state.style = static_cast<DWORD>(GetWindowLongPtr(wnd, GWL_STYLE));
+    GetWindowPlacement(wnd, &state.wp);
+
+    // Switch to NoBorder style (remove caption and thick frame)
+    LONG newStyle = state.style & ~(WS_CAPTION | WS_THICKFRAME);
+    SetWindowLongPtr(wnd, GWL_STYLE, newStyle);
+    EnableWindowShadow(wnd, false);
+
+    // Get full screen area from the monitor where window is located
+    RECT screenArea;
+    if (HMONITOR monitor = MonitorFromWindow(wnd, MONITOR_DEFAULTTONEAREST))
+    {
+        MONITORINFO mi = { sizeof(MONITORINFO) };
+        if (GetMonitorInfo(monitor, &mi))
+            screenArea = mi.rcMonitor; // Use full monitor area (including taskbar)
+        else
+            SystemParametersInfo(SPI_GETWORKAREA, 0, &screenArea, 0); // Fallback
+    }
+    else
+    {
+        SystemParametersInfo(SPI_GETWORKAREA, 0, &screenArea, 0); // Fallback
+    }
+
+    // Position window to fill entire screen
+    SetWindowPos(wnd, HWND_TOP,
+        screenArea.left, screenArea.top,
+        screenArea.right - screenArea.left,
+        screenArea.bottom - screenArea.top,
+        SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+}
+
+void ExitFullscreen(HWND wnd, WindowState& state)
+{
+    // Check if state is initialized
+    if (state.wp.length == 0 || state.fullscreen == false)
+        return;
+
+    // Restore original style
+    SetWindowLongPtr(wnd, GWL_STYLE, state.style);
+
+    // Restore from saved WINDOWPLACEMENT
+    SetWindowPlacement(wnd, &state.wp);
+
+    // Re-enable DWM shadow if was NoBorder (no WS_THICKFRAME)
+    bool wasNoBorder = (state.style & WS_THICKFRAME) == 0;
+    if (wasNoBorder)
+        EnableWindowShadow(wnd, true);
+
+    // Notify frame changes
+    SetWindowPos(wnd, HWND_TOP, 0, 0, 0, 0,
+        SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+}
+
+bool IsFullscreen(HWND wnd)
+{
+    // Get current window rect
+    RECT windowRect;
+    GetWindowRect(wnd, &windowRect);
+
+    // Get full monitor area
+    RECT monitorRect;
+    if (HMONITOR monitor = MonitorFromWindow(wnd, MONITOR_DEFAULTTONEAREST))
+    {
+        MONITORINFO mi = { sizeof(MONITORINFO) };
+        if (GetMonitorInfo(monitor, &mi))
+            monitorRect = mi.rcMonitor;
+        else
+            return false;
+    }
+    else
+    {
+        return false;
+    }
+
+    // Compare window rect with monitor rect
+    return windowRect.left == monitorRect.left &&
+           windowRect.top == monitorRect.top &&
+           windowRect.right == monitorRect.right &&
+           windowRect.bottom == monitorRect.bottom;
+}
+
 } // namespace Utility
