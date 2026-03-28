@@ -11,6 +11,8 @@ public:
     {
         cmd_show_main_menu = 0,
         cmd_show_status_bar,
+        cmd_maximize,
+        cmd_restore,
         cmd_total
     };
 
@@ -37,6 +39,14 @@ public:
 
         case cmd_show_status_bar:
             p_out = "Show status bar";
+            break;
+
+        case cmd_maximize:
+            p_out = "Maximize";
+            break;
+
+        case cmd_restore:
+            p_out = "Restore";
             break;
 
         default:
@@ -66,6 +76,14 @@ public:
             OpenHacksCore::Get().ToggleStatusBar();
             break;
 
+        case cmd_maximize:
+            ShowWindow(core_api::get_main_window(), SW_MAXIMIZE);
+            break;
+
+        case cmd_restore:
+            ShowWindow(core_api::get_main_window(), SW_RESTORE);
+            break;
+
         default:
             uBugCheck();
         }
@@ -87,6 +105,24 @@ public:
             case cmd_show_status_bar:
                 p_flags |= flag_defaulthidden;
                 p_flags |= (OpenHacksVars::ShowStatusBar ? flag_checked : 0);
+                break;
+
+            case cmd_maximize:
+            case cmd_restore:
+                {
+                    p_flags |= flag_defaulthidden;
+                    HWND mainWindow = core_api::get_main_window();
+                    WINDOWPLACEMENT wp = { sizeof(WINDOWPLACEMENT) };
+                    GetWindowPlacement(mainWindow, &wp);
+                    bool isMaximized = (wp.showCmd == SW_SHOWMAXIMIZED);
+                    bool isMinimized = (wp.showCmd == SW_SHOWMINIMIZED);
+                    // Maximize: disabled when already maximized
+                    // Restore: disabled when window is normal (not maximized, not minimized)
+                    if (p_index == cmd_maximize && isMaximized)
+                        p_flags |= flag_disabled;
+                    else if (p_index == cmd_restore && !isMaximized && !isMinimized)
+                        p_flags |= flag_disabled;
+                }
                 break;
 
             default:
