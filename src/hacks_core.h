@@ -113,4 +113,5 @@ private:
     DWORD mInstallHooksWin32Error = ERROR_SUCCESS;
 
     std::optional<WindowState> mSavedWindowState;
+    bool mRequireRevertCursor = false;
 };

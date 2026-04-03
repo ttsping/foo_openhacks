@@ -149,11 +149,20 @@ void OpenHacksCore::OnHookMouseMove(LPMSG msg)
         const POINT pt = {GET_X_LPARAM(messagePos), GET_Y_LPARAM(messagePos)};
         const Rect rectForNonSizeing = GetRectForNonSizing();
         if (rectForNonSizeing.IsPointIn(pt))
+        {
+            if (mRequireRevertCursor)
+            {
+                mRequireRevertCursor = false;
+                SendMessage(mMainWindow, WM_SETCURSOR, (WPARAM)mMainWindow, MAKELPARAM(HTCLIENT, WM_MOUSEMOVE));
+            }
+
             return;
+        }
 
         const int32_t hittest = (int32_t)SendMessage(mMainWindow, WM_NCHITTEST, 0, MAKELPARAM(pt.x, pt.y));
         if (hittest != HTCLIENT)
         {
+            mRequireRevertCursor = true;
             SendMessage(mMainWindow, WM_SETCURSOR, (WPARAM)mMainWindow, MAKELPARAM(hittest, WM_MOUSEMOVE));
             msg->message = WM_NULL;
         }
