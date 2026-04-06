@@ -7,6 +7,14 @@ author: ohyeah
 MSVC: v%s %s
 Compile: %s
 Foobar2000 SDK: %s
+
+Third-party libraries:
+
+MinHook - The Minimalistic API Hooking Library for x64/x86
+Copyright (C) 2009-2017 Tsuda Kageyu.
+All rights reserved.
+
+
 )OH";
 
 const char* GetOpenHacksAbout()
