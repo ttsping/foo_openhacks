@@ -6,8 +6,7 @@
 enum WindowFrameStyle
 {
     WindowFrameStyleDefault = 0,
-    WindowFrameStyleNoCaption,
-    WindowFrameStyleNoBorder,
+    WindowFrameStyleNoBorder = 1,
 };
 
 struct WindowState
@@ -46,6 +45,7 @@ void Maximize(HWND wnd, WindowState& state);
 void Restore(HWND wnd, WindowState& state);
 bool IsMaximized(HWND wnd);
 bool IsMinimized(HWND wnd);
+bool IsFullscreenOrMaximized(HWND wnd);
 void ApplyWindowFrameStyle(HWND wnd, WindowFrameStyle style);
 
 // Fullscreen management

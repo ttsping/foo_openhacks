@@ -40,17 +40,29 @@ void OpenHacksCore::Initialize()
             mSavedWindowState = savedWindowData.ToWindowState();
         }
 
+        // Migrate old config values: old NoCaption(1) or NoBorder(2) -> new NoBorder(1)
+        int32_t styleValue = OpenHacksVars::MainWindowFrameStyle;
+        if (styleValue > WindowFrameStyleNoBorder)
+        {
+            styleValue = WindowFrameStyleNoBorder;
+            OpenHacksVars::MainWindowFrameStyle = styleValue;
+        }
+
+        auto newStyle = static_cast<WindowFrameStyle>(styleValue);
+
         if (mSavedWindowState.has_value() && mSavedWindowState->fullscreen)
         {
+            // Restore fullscreen state
             WindowState state = {};
             Utility::EnterFullscreen(window, state);
         }
+        else if (mSavedWindowState.has_value())
+        {
+            ApplyMainWindowFrameStyle(newStyle);
+            Utility::Maximize(window, mSavedWindowState.value());
+        }
         else
         {
-            auto newStyle = static_cast<WindowFrameStyle>((int32_t)OpenHacksVars::MainWindowFrameStyle);
-            if (mSavedWindowState.has_value() && (newStyle == WindowFrameStyleNoCaption))
-                newStyle = WindowFrameStyleNoBorder;
-
             ApplyMainWindowFrameStyle(newStyle);
         }
 
@@ -94,12 +106,14 @@ POINT OpenHacksCore::GetBorderMetrics()
     return POINT{cx, cy};
 }
 
-Rect OpenHacksCore::GetRectForNonSizing()
+Rect OpenHacksCore::GetRectForSizing()
 {
     Rect rect;
     GetWindowRect(mMainWindow, &rect);
     const auto border = GetBorderMetrics();
-    return rect.Inflate(-border.x, -border.y);
+    // Return top border area only (for manual resize handling)
+    rect.bottom = rect.top + border.y;
+    return rect;
 }
 
 void OpenHacksCore::ToggleStatusBar()
@@ -172,13 +186,20 @@ void OpenHacksCore::ApplyMainWindowFrameStyle(WindowFrameStyle newStyle)
 {
     HWND mainWindow = core_api::get_main_window();
     Utility::ApplyWindowFrameStyle(mainWindow, newStyle);
-    // Handle shadow for NoBorder style
+
+    // Calculate mBorderThickness for WM_NCCALCSIZE
     if (newStyle == WindowFrameStyleNoBorder)
     {
-        // Check if window is maximized - if so, don't enable shadow
-        // (Maximize disables shadow, we shouldn't re-enable it)
-        const bool isMaximized = Utility::IsMaximized(mainWindow) || mSavedWindowState.has_value();
-        Utility::EnableWindowShadow(mainWindow, isMaximized ? false : true);
+        LONG currentStyle = GetWindowLongPtr(mainWindow, GWL_STYLE);
+        RECT border = {0};
+        AdjustWindowRectEx(&border, currentStyle, FALSE, 0);
+        mBorderThickness = border;
+        // Force WM_NCCALCSIZE to apply the new border thickness
+        SetWindowPos(mainWindow, nullptr, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+    }
+    else
+    {
+        mBorderThickness = {};
     }
 }
 

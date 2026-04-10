@@ -158,7 +158,6 @@ void Maximize(HWND wnd, WindowState& state)
         // This simplifies maximize - no need to calculate border
         LONG newStyle = state.style & ~(WS_CAPTION | WS_THICKFRAME);
         SetWindowLongPtr(wnd, GWL_STYLE, newStyle);
-        EnableWindowShadow(wnd, false);
 
         // Get work area from the monitor where window is located
         RECT workArea;
@@ -207,10 +206,7 @@ void Restore(HWND wnd, WindowState& state)
         state.wp.showCmd = SW_SHOWNORMAL;
         SetWindowPlacement(wnd, &state.wp);
         
-        // Re-enable DWM shadow if was NoBorder (no WS_THICKFRAME)
-        bool wasNoBorder = (state.style & WS_THICKFRAME) == 0;
-        if (wasNoBorder)
-            EnableWindowShadow(wnd, true);
+        // Shadow is rendered automatically by THICKFRAME
         
         // Notify frame changes
         SetWindowPos(wnd, HWND_TOP, 0, 0, 0, 0,
@@ -263,9 +259,14 @@ bool IsMaximized(HWND wnd)
 
 bool IsMinimized(HWND wnd)
 {
-    WINDOWPLACEMENT wp = { sizeof(WINDOWPLACEMENT) }; 
+    WINDOWPLACEMENT wp = { sizeof(WINDOWPLACEMENT) };
     GetWindowPlacement(wnd, &wp);
     return wp.showCmd == SW_SHOWMINIMIZED || wp.showCmd == SW_MINIMIZE;
+}
+
+bool IsFullscreenOrMaximized(HWND wnd)
+{
+    return IsFullscreen(wnd) || IsMaximized(wnd);
 }
 
 void ApplyWindowFrameStyle(HWND wnd, WindowFrameStyle style)
@@ -279,13 +280,9 @@ void ApplyWindowFrameStyle(HWND wnd, WindowFrameStyle style)
         newStyle |= (WS_CAPTION | WS_THICKFRAME);
         break;
 
-    case WindowFrameStyleNoCaption:
+    case WindowFrameStyleNoBorder:
         newStyle |= WS_THICKFRAME;
         newStyle &= ~(WS_CAPTION);
-        break;
-
-    case WindowFrameStyleNoBorder:
-        newStyle &= ~(WS_CAPTION | WS_THICKFRAME);
         break;
 
     default:
@@ -310,7 +307,6 @@ void EnterFullscreen(HWND wnd, WindowState& state)
     // Switch to NoBorder style (remove caption and thick frame)
     LONG newStyle = state.style & ~(WS_CAPTION | WS_THICKFRAME);
     SetWindowLongPtr(wnd, GWL_STYLE, newStyle);
-    EnableWindowShadow(wnd, false);
 
     // Get full screen area from the monitor where window is located
     RECT screenArea;
@@ -347,10 +343,7 @@ void ExitFullscreen(HWND wnd, WindowState& state)
     // Restore from saved WINDOWPLACEMENT
     SetWindowPlacement(wnd, &state.wp);
 
-    // Re-enable DWM shadow if was NoBorder (no WS_THICKFRAME)
-    bool wasNoBorder = (state.style & WS_THICKFRAME) == 0;
-    if (wasNoBorder)
-        EnableWindowShadow(wnd, true);
+    // Shadow is rendered automatically by THICKFRAME
 
     // Notify frame changes
     SetWindowPos(wnd, HWND_TOP, 0, 0, 0, 0,

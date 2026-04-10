@@ -147,20 +147,25 @@ void OpenHacksCore::OnHookMouseMove(LPMSG msg)
 
         const DWORD messagePos = GetMessagePos();
         const POINT pt = {GET_X_LPARAM(messagePos), GET_Y_LPARAM(messagePos)};
-        const Rect rectForNonSizeing = GetRectForNonSizing();
-        if (rectForNonSizeing.IsPointIn(pt))
+        const Rect rectForSizing = GetRectForSizing();
+
+        // Only handle top border area
+        if (!rectForSizing.IsPointIn(pt))
         {
             if (mRequireRevertCursor)
             {
                 mRequireRevertCursor = false;
                 SendMessage(mMainWindow, WM_SETCURSOR, (WPARAM)mMainWindow, MAKELPARAM(HTCLIENT, WM_MOUSEMOVE));
             }
-
             return;
         }
 
+        // Disable resize when fullscreen or maximized
+        if (Utility::IsFullscreenOrMaximized(mMainWindow))
+            return;
+
         const int32_t hittest = (int32_t)SendMessage(mMainWindow, WM_NCHITTEST, 0, MAKELPARAM(pt.x, pt.y));
-        if (hittest != HTCLIENT)
+        if (hittest == HTTOP || hittest == HTTOPLEFT || hittest == HTTOPRIGHT)
         {
             mRequireRevertCursor = true;
             SendMessage(mMainWindow, WM_SETCURSOR, (WPARAM)mMainWindow, MAKELPARAM(hittest, WM_MOUSEMOVE));
@@ -184,11 +189,15 @@ void OpenHacksCore::OnHookLButtonDown(LPMSG msg)
         const DWORD messagePos = GetMessagePos();
         const POINT pt = {GET_X_LPARAM(messagePos), GET_Y_LPARAM(messagePos)};
 
-        // simulate move
+        // simulate move (drag window via pseudo caption area)
         const auto& pseudoCaption = OpenHacksVars::PseudoCaptionSettings.get_value();
         Rect rectPseudoCaption = pseudoCaption.ToRect(mMainWindow);
         if (rectPseudoCaption.IsPointIn(pt))
         {
+            // Disable window drag when fullscreen or maximized
+            if (Utility::IsFullscreenOrMaximized(mMainWindow))
+                return;
+
             SendMessage(mMainWindow, WM_SYSCOMMAND, SC_MOVE | HTCAPTION, MAKELPARAM(pt.x, pt.y));
             msg->message = WM_NULL;
             return;
@@ -196,15 +205,15 @@ void OpenHacksCore::OnHookLButtonDown(LPMSG msg)
 
         if (OpenHacksVars::MainWindowFrameStyle == WindowFrameStyleNoBorder)
         {
-            // simulate resizing
-            const Rect rectForNonSizeing = GetRectForNonSizing();
-            if (!rectForNonSizeing.IsPointIn(pt))
+            // Only handle top border area for resize
+            const Rect rectForSizing = GetRectForSizing();
+            if (rectForSizing.IsPointIn(pt))
             {
                 if (threadInfo.flags & (GUI_INMOVESIZE))
                     return;
 
                 const int32_t hittest = (int32_t)SendMessage(mMainWindow, WM_NCHITTEST, 0, MAKELPARAM(pt.x, pt.y));
-                if (hittest != HTCLIENT)
+                if (hittest == HTTOP || hittest == HTTOPLEFT || hittest == HTTOPRIGHT)
                 {
                     SendMessage(mMainWindow, WM_SETCURSOR, (WPARAM)mMainWindow, MAKELPARAM(hittest, WM_MOUSEMOVE));
                     SendMessage(mMainWindow, WM_SYSCOMMAND, SC_SIZE | HitTestToWMSZ(hittest), MAKELPARAM(pt.x, pt.y));

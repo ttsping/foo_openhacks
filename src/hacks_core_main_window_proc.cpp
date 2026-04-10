@@ -41,41 +41,26 @@ bool OpenHacksCore::OnSysCommand(HWND wnd, WPARAM wp, LPARAM lp)
 
 LRESULT OpenHacksCore::OnNCHitTest(HWND wnd, WPARAM wp, LPARAM lp)
 {
+    // Only handle top border, other edges are handled by system THICKFRAME
     const POINT cursor = {GET_X_LPARAM(lp), GET_Y_LPARAM(lp)};
     const POINT border = GetBorderMetrics();
     RECT rect = {};
     GetWindowRect(mMainWindow, &rect);
-    enum EdgeMask
-    {
-        Left = 0b0001,
-        Right = 0b0010,
-        Top = 0b0100,
-        Bottom = 0b1000,
-    };
 
-    const auto result = Left * (cursor.x < (rect.left + border.x)) | Right * (cursor.x >= (rect.right - border.x)) | Top * (cursor.y < (rect.top + border.y)) |
-                        Bottom * (cursor.y >= (rect.bottom - border.y));
-    switch (result)
+    // Check if cursor is in top border area
+    if (cursor.y < (rect.top + border.y))
     {
-    case Left:
-        return HTLEFT;
-    case Right:
-        return HTRIGHT;
-    case Top:
-        return HTTOP;
-    case Bottom:
-        return HTBOTTOM;
-    case Top | Left:
-        return HTTOPLEFT;
-    case Top | Right:
-        return HTTOPRIGHT;
-    case Bottom | Left:
-        return HTBOTTOMLEFT;
-    case Bottom | Right:
-        return HTBOTTOMRIGHT;
-    default:
-        return HTNOWHERE;
+        // Distinguish top-left, top, and top-right based on X coordinate
+        if (cursor.x < (rect.left + border.x))
+            return HTTOPLEFT;
+        else if (cursor.x >= (rect.right - border.x))
+            return HTTOPRIGHT;
+        else
+            return HTTOP;
     }
+
+    // Let original window proc handle other areas (THICKFRAME will handle left/right/bottom)
+    return CallWindowProc(mMainWindowOriginProc, wnd, WM_NCHITTEST, wp, lp);
 }
 
 bool OpenHacksCore::OnSetCursor(HWND wnd, WPARAM wp, LPARAM lp)
@@ -87,13 +72,12 @@ bool OpenHacksCore::OnSetCursor(HWND wnd, WPARAM wp, LPARAM lp)
     if (hittest == HTCLIENT)
         return false;
 
-    if (hittest == HTTOP || hittest == HTBOTTOM)
+    // Handle top border hit tests (other edges handled by system THICKFRAME)
+    if (hittest == HTTOP)
         SetCursor(LoadCursor(nullptr, IDC_SIZENS));
-    else if (hittest == HTLEFT || hittest == HTRIGHT)
-        SetCursor(LoadCursor(nullptr, IDC_SIZEWE));
-    else if (hittest == HTTOPLEFT || hittest == HTBOTTOMRIGHT)
+    else if (hittest == HTTOPLEFT)
         SetCursor(LoadCursor(nullptr, IDC_SIZENWSE));
-    else if (hittest == HTTOPRIGHT || hittest == HTBOTTOMLEFT)
+    else if (hittest == HTTOPRIGHT)
         SetCursor(LoadCursor(nullptr, IDC_SIZENESW));
     else
         return false;
@@ -116,7 +100,9 @@ LRESULT OpenHacksCore::OpenHacksMainWindowProc(HWND wnd, UINT msg, WPARAM wp, LP
         break;
 
     case WM_NCHITTEST:
-        return OnNCHitTest(wnd, wp, lp);
+        if (OpenHacksVars::MainWindowFrameStyle == WindowFrameStyleNoBorder)
+            return OnNCHitTest(wnd, wp, lp);
+        break;
 
     case WM_SETCURSOR:
         if (OnSetCursor(wnd, wp, lp))
@@ -126,6 +112,20 @@ LRESULT OpenHacksCore::OpenHacksMainWindowProc(HWND wnd, UINT msg, WPARAM wp, LP
     case WM_NCACTIVATE:
         if (OpenHacksVars::MainWindowFrameStyle == WindowFrameStyleNoBorder)
             return CallWindowProc(mMainWindowOriginProc, wnd, msg, wp, -1);
+        break;
+
+    case WM_NCCALCSIZE:
+        if (wp && (OpenHacksVars::MainWindowFrameStyle == WindowFrameStyleNoBorder))
+        {
+            DWORD style = GetWindowLongPtr(wnd, GWL_STYLE);
+            if (style & WS_THICKFRAME)
+            {
+                auto res = CallWindowProc(mMainWindowOriginProc, wnd, msg, wp, lp);
+                auto sz = (NCCALCSIZE_PARAMS*)(lp);
+                sz->rgrc[0].top += mBorderThickness.top;
+                return res;
+            }
+        }
         break;
 
     case WM_SIZE:

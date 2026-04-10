@@ -86,7 +86,7 @@ private:
 
     bool IsMainOrChildWindow(HWND wnd);
     POINT GetBorderMetrics();
-    Rect GetRectForNonSizing();
+    Rect GetRectForSizing();
 
 private:
     // main window message handlers
@@ -114,4 +114,5 @@ private:
 
     std::optional<WindowState> mSavedWindowState;
     bool mRequireRevertCursor = false;
+    RECT mBorderThickness = {};
 };

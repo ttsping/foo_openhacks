@@ -32,7 +32,6 @@ void UIPrefMainWindowDialog::OnInitDialog()
 
     mComboFrameStyle.Attach(GetDlgItem(IDC_FRAME_STYLE));
     mComboFrameStyle.AddString(TEXT("Default"));
-    mComboFrameStyle.AddString(TEXT("No caption"));
     mComboFrameStyle.AddString(TEXT("No border"));
 
     LoadUIState();
@@ -101,7 +100,11 @@ void UIPrefMainWindowDialog::OnSetFocus(CWindow wndOld)
 
 void UIPrefMainWindowDialog::LoadUIState()
 {
-    mComboFrameStyle.SetCurSel(OpenHacksVars::MainWindowFrameStyle);
+    // Migrate old config values: old NoCaption(1) or NoBorder(2) -> new NoBorder(1)
+    int32_t styleValue = OpenHacksVars::MainWindowFrameStyle;
+    if (styleValue > WindowFrameStyleNoBorder)
+        styleValue = WindowFrameStyleNoBorder;
+    mComboFrameStyle.SetCurSel(styleValue);
 
     const auto SetupControl = [dlg = m_hWnd](int32_t checkId, int32_t editId, int32_t spinId, bool state, int32_t value)
     {
