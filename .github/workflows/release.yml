@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-2025-vs2026
     outputs:
       version: ${{ steps.get_version.outputs.version }}
     steps:
@@ -32,32 +32,36 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Setup vcpkg (x86)
-        uses: johnwason/vcpkg-action@v7
+      - name: Cache vcpkg downloads
+        uses: actions/cache@v4
         with:
-          manifest-dir: ${{ github.workspace }}
-          triplet: x86-windows-static-md
-          token: ${{ secrets.GITHUB_TOKEN }}
-          revision: b5d1a94fb7f88fd835e360fd23a45a09ceedbf48
+          path: ${{ runner.temp }}\vcpkg_downloads
+          key: vcpkg-downloads-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            vcpkg-downloads-${{ runner.os }}-
 
-      - name: Setup vcpkg (x64)
-        uses: johnwason/vcpkg-action@v7
+      - name: Cache vcpkg binary cache
+        uses: actions/cache@v4
         with:
-          manifest-dir: ${{ github.workspace }}
-          triplet: x64-windows-static-md
-          token: ${{ secrets.GITHUB_TOKEN }}
-          revision: b5d1a94fb7f88fd835e360fd23a45a09ceedbf48
+          path: ${{ runner.temp }}\vcpkg_archives
+          key: vcpkg-archives-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            vcpkg-archives-${{ runner.os }}-
 
-      - name: Integrate vcpkg with Visual Studio
-        shell: pwsh
+      - name: Setup vcpkg
         run: |
-          & "${{ github.workspace }}\vcpkg\vcpkg.exe" integrate install
-          & "${{ github.workspace }}\vcpkg\vcpkg.exe" list
+          if not exist "%RUNNER_TEMP%\vcpkg_archives" mkdir "%RUNNER_TEMP%\vcpkg_archives"
+          if not exist "%RUNNER_TEMP%\vcpkg_downloads" mkdir "%RUNNER_TEMP%\vcpkg_downloads"
+          python setup_vcpkg.py
+        shell: cmd
+        env:
+          VCPKG_DEFAULT_BINARY_CACHE: ${{ runner.temp }}\vcpkg_archives
+          VCPKG_DOWNLOADS: ${{ runner.temp }}\vcpkg_downloads
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v3
         with:
-          vs-version: latest
+          vs-version: '18'
 
       - name: Create foobar2000 components directory
         run: |
@@ -70,7 +74,10 @@ jobs:
 
       - name: Build
         working-directory: ${{env.SOLUTION_FILE_PATH}}
-        run: python build.py --rebuild
+        run: python build.py --rebuild --verbose
+        env:
+          VCPKG_DEFAULT_BINARY_CACHE: ${{ runner.temp }}\vcpkg_archives
+          VCPKG_DOWNLOADS: ${{ runner.temp }}\vcpkg_downloads
 
       - name: Upload fb2k-component artifact
         uses: actions/upload-artifact@v7

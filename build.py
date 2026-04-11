@@ -34,11 +34,11 @@ def run_vs_command(vs_install_dir, commands):
     vs_dev_cmd_path = os.path.join(vs_install_dir, 'Common7', 'Tools', 'VsDevCmd.bat')
     full_cmd = f'"{vs_dev_cmd_path}" -no_logo -arch=x64 -host_arch=x64 && ' + commands
     subprocess.run(full_cmd, shell=True, check=True)
-
-def build_project(vs_install_dir, platform, configuration, rebuild=False):
+def build_project(vs_install_dir, platform, configuration, rebuild=False, verbose=False):
     print(f"{'Rebuild' if rebuild else 'Building'} {platform} {configuration}...")
     target = f"{PROJECT_NAME}:rebuild" if rebuild else PROJECT_NAME
-    cmd = f'msbuild {SOLUTION_FILE} -nologo -v:quiet -t:{target} /p:Configuration={configuration} /p:Platform={platform}'
+    verbosity = 'minimal' if verbose else 'quiet'
+    cmd = f'msbuild {SOLUTION_FILE} -nologo -v:{verbosity} -t:{target} /p:Configuration={configuration} /p:Platform={platform}'
     run_vs_command(vs_install_dir, cmd)
 
 def get_output_path(platform, configuration):
@@ -59,10 +59,12 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', default='Release', help='Build configuration')
     parser.add_argument('--rebuild', action='store_true', help='Use rebuild target in MSBuild')
+    parser.add_argument('--verbose', action='store_true', help='Show detailed MSBuild output (cl.exe, link.exe, etc.)')
     args = parser.parse_args()
 
     configuration = args.config
     rebuild = args.rebuild
+    verbose = args.verbose
     platforms = ['x86', 'x64']
 
     vs_install_dir = get_vs_install_dir()
@@ -70,7 +72,7 @@ def main():
 
     # Step 1: Build x86 and x64
     for platform in platforms:
-        build_project(vs_install_dir, platform, configuration, rebuild=rebuild)
+        build_project(vs_install_dir, platform, configuration, rebuild=rebuild, verbose=verbose)
 
     # Step 2: Create versioned temp directory under public/
     public_dir = os.path.join(os.getcwd(), 'public')
