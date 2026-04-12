@@ -34,6 +34,8 @@ public:
 
     void ApplyMainWindowFrameStyle(WindowFrameStyle newStyle);
 
+    void ApplyWindowSizeConstraints();
+
     void Maximize();
     void Restore();
     bool IsMaximized();

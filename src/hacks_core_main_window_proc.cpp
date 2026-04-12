@@ -41,6 +41,27 @@ bool OpenHacksCore::OnSysCommand(HWND wnd, WPARAM wp, LPARAM lp)
 
 LRESULT OpenHacksCore::OnNCHitTest(HWND wnd, WPARAM wp, LPARAM lp)
 {
+    // Disable sizing border hit tests if configured
+    if (OpenHacksVars::WindowSizeConstraintsSettings.get_value().disableSizing)
+    {
+        LRESULT result = CallWindowProc(mMainWindowOriginProc, wnd, WM_NCHITTEST, wp, lp);
+        // Convert sizing hit tests to border/client
+        switch (result)
+        {
+        case HTLEFT:
+        case HTRIGHT:
+        case HTTOP:
+        case HTBOTTOM:
+        case HTTOPLEFT:
+        case HTTOPRIGHT:
+        case HTBOTTOMLEFT:
+        case HTBOTTOMRIGHT:
+            return HTBORDER;
+        default:
+            return result;
+        }
+    }
+
     // Only handle top border, other edges are handled by system THICKFRAME
     const POINT cursor = {GET_X_LPARAM(lp), GET_Y_LPARAM(lp)};
     const POINT border = GetBorderMetrics();
@@ -97,10 +118,18 @@ LRESULT OpenHacksCore::OpenHacksMainWindowProc(HWND wnd, UINT msg, WPARAM wp, LP
     case WM_SYSCOMMAND:
         if (OnSysCommand(wnd, wp, lp))
             return 0;
+        // Disable sizing if configured
+        if (OpenHacksVars::WindowSizeConstraintsSettings.get_value().disableSizing)
+        {
+            const auto cmd = static_cast<UINT>(wp & 0xFFF0);
+            if (cmd == SC_SIZE || cmd == SC_MAXIMIZE)
+                return 0;
+        }
         break;
 
     case WM_NCHITTEST:
-        if (OpenHacksVars::MainWindowFrameStyle == WindowFrameStyleNoBorder)
+        if (OpenHacksVars::WindowSizeConstraintsSettings.get_value().disableSizing ||
+            OpenHacksVars::MainWindowFrameStyle == WindowFrameStyleNoBorder)
             return OnNCHitTest(wnd, wp, lp);
         break;
 
@@ -131,6 +160,29 @@ LRESULT OpenHacksCore::OpenHacksMainWindowProc(HWND wnd, UINT msg, WPARAM wp, LP
     case WM_SIZE:
         if (OnSize(wnd, wp, lp))
             return 0;
+        break;
+
+    case WM_GETMINMAXINFO:
+        {
+            const auto& constraints = OpenHacksVars::WindowSizeConstraintsSettings.get_value();
+            auto* minmaxInfo = (MINMAXINFO*)lp;
+            // Apply minimum size constraints
+            if (constraints.enableMinSize)
+            {
+                if (constraints.minWidth > 0)
+                    minmaxInfo->ptMinTrackSize.x = constraints.minWidth;
+                if (constraints.minHeight > 0)
+                    minmaxInfo->ptMinTrackSize.y = constraints.minHeight;
+            }
+            // Apply maximum size constraints
+            if (constraints.enableMaxSize)
+            {
+                if (constraints.maxWidth > 0)
+                    minmaxInfo->ptMaxTrackSize.x = constraints.maxWidth;
+                if (constraints.maxHeight > 0)
+                    minmaxInfo->ptMaxTrackSize.y = constraints.maxHeight;
+            }
+        }
         break;
 
     case WM_DPICHANGED: // fixme: won't receive currently(DPI System aware).

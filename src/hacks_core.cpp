@@ -203,6 +203,13 @@ void OpenHacksCore::ApplyMainWindowFrameStyle(WindowFrameStyle newStyle)
     }
 }
 
+void OpenHacksCore::ApplyWindowSizeConstraints()
+{
+    HWND mainWindow = core_api::get_main_window();
+    // Force the window to respect new constraints by triggering WM_GETMINMAXINFO
+    SetWindowPos(mainWindow, nullptr, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+}
+
 void OpenHacksCore::Maximize()
 {
     HWND mainWindow = core_api::get_main_window();

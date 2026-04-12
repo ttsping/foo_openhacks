@@ -4,6 +4,20 @@
 
 #pragma pack(push)
 #pragma pack(1)
+
+// Window size constraints
+struct WindowSizeConstraints
+{
+    bool disableSizing = false;
+    bool enableMinSize = false;
+    bool enableMaxSize = false;
+    int32_t minWidth = 0;
+    int32_t minHeight = 0;
+    int32_t maxWidth = 0;
+    int32_t maxHeight = 0;
+    int32_t reserved[8] = {};
+};
+
 struct PseudoCaptionParam
 {
     enum Margins
@@ -129,6 +143,7 @@ extern cfg_bool ShowStatusBar;
 extern cfg_int MainWindowFrameStyle;
 extern cfg_struct_t<PseudoCaptionParam> PseudoCaptionSettings;
 extern cfg_struct_t<WindowStateData> SavedWindowState;
+extern cfg_struct_t<WindowSizeConstraints> WindowSizeConstraintsSettings;
 
 // runtime vars
 extern uint32_t DPI;

@@ -29,10 +29,29 @@ void ReadPseudoCaptionSettingFromControls(HWND dlg, PseudoCaptionParam& param)
 void UIPrefMainWindowDialog::OnInitDialog()
 {
     SetHeaderFont(IDC_PREF_HEADER1);
+    SetHeaderFont(IDC_PREF_HEADER2);
+    SetHeaderFont(IDC_PREF_HEADER3);
 
     mComboFrameStyle.Attach(GetDlgItem(IDC_FRAME_STYLE));
     mComboFrameStyle.AddString(TEXT("Default"));
     mComboFrameStyle.AddString(TEXT("No border"));
+
+    // Setup spin controls for size constraints
+    CUpDownCtrl spinMinWidth(::GetDlgItem(m_hWnd, IDC_SPIN_MIN_WIDTH));
+    spinMinWidth.SetBuddy(::GetDlgItem(m_hWnd, IDC_MIN_WIDTH));
+    spinMinWidth.SetRange(0, UD_MAXVAL);
+
+    CUpDownCtrl spinMinHeight(::GetDlgItem(m_hWnd, IDC_SPIN_MIN_HEIGHT));
+    spinMinHeight.SetBuddy(::GetDlgItem(m_hWnd, IDC_MIN_HEIGHT));
+    spinMinHeight.SetRange(0, UD_MAXVAL);
+
+    CUpDownCtrl spinMaxWidth(::GetDlgItem(m_hWnd, IDC_SPIN_MAX_WIDTH));
+    spinMaxWidth.SetBuddy(::GetDlgItem(m_hWnd, IDC_MAX_WIDTH));
+    spinMaxWidth.SetRange(0, UD_MAXVAL);
+
+    CUpDownCtrl spinMaxHeight(::GetDlgItem(m_hWnd, IDC_SPIN_MAX_HEIGHT));
+    spinMaxHeight.SetBuddy(::GetDlgItem(m_hWnd, IDC_MAX_HEIGHT));
+    spinMaxHeight.SetRange(0, UD_MAXVAL);
 
     LoadUIState();
     UpdateCtrlState();
@@ -87,6 +106,41 @@ void UIPrefMainWindowDialog::OnCommand(UINT code, int id, CWindow ctrl)
             ShowOrHidePseudoCaptionOverlayAutomatically();
         break;
 
+    case IDC_DISABLE_SIZING:
+    case IDC_ENABLE_MIN_SIZE:
+    case IDC_ENABLE_MAX_SIZE:
+        if (code == BN_CLICKED)
+        {
+            UpdateCtrlState();
+            NotifyStateChanges(true);
+        }
+        break;
+
+    case IDC_USE_CUR_MIN_WIDTH:
+    case IDC_USE_CUR_MIN_HEIGHT:
+    case IDC_USE_CUR_MAX_WIDTH:
+    case IDC_USE_CUR_MAX_HEIGHT:
+        if (code == BN_CLICKED)
+        {
+            HWND mainWindow = core_api::get_main_window();
+            RECT rect = {};
+            ::GetWindowRect(mainWindow, &rect);
+            int32_t width = rect.right - rect.left;
+            int32_t height = rect.bottom - rect.top;
+
+            if (id == IDC_USE_CUR_MIN_WIDTH)
+                SetDlgItemInt(IDC_MIN_WIDTH, (UINT)width, TRUE);
+            else if (id == IDC_USE_CUR_MIN_HEIGHT)
+                SetDlgItemInt(IDC_MIN_HEIGHT, (UINT)height, TRUE);
+            else if (id == IDC_USE_CUR_MAX_WIDTH)
+                SetDlgItemInt(IDC_MAX_WIDTH, (UINT)width, TRUE);
+            else if (id == IDC_USE_CUR_MAX_HEIGHT)
+                SetDlgItemInt(IDC_MAX_HEIGHT, (UINT)height, TRUE);
+
+            NotifyStateChanges(true);
+        }
+        break;
+
     default:
         break;
     }
@@ -94,8 +148,7 @@ void UIPrefMainWindowDialog::OnCommand(UINT code, int id, CWindow ctrl)
 
 void UIPrefMainWindowDialog::OnSetFocus(CWindow wndOld)
 {
-    const auto ctrlId = ::GetDlgCtrlID(GetFocus());
-    console::formatter() << "focus: " << ctrlId;
+    SetMsgHandled(FALSE);
 }
 
 void UIPrefMainWindowDialog::LoadUIState()
@@ -125,6 +178,16 @@ void UIPrefMainWindowDialog::LoadUIState()
     SetupControl(IDC_CHECK_BOTTOM, IDC_EDIT_BOTTOM, IDC_SPIN_BOTTOM, marginStates.bottom, pseudoCaption.bottom);
     SetupControl(0, IDC_EDIT_WIDTH, IDC_SPIN_WIDTH, false, pseudoCaption.width);
     SetupControl(0, IDC_EDIT_HEIGHT, IDC_SPIN_HEIGHT, false, pseudoCaption.height);
+
+    // Load window size constraints
+    const auto& sizeConstraints = OpenHacksVars::WindowSizeConstraintsSettings.get_value();
+    uButton_SetCheck(m_hWnd, IDC_DISABLE_SIZING, sizeConstraints.disableSizing);
+    uButton_SetCheck(m_hWnd, IDC_ENABLE_MIN_SIZE, sizeConstraints.enableMinSize);
+    uButton_SetCheck(m_hWnd, IDC_ENABLE_MAX_SIZE, sizeConstraints.enableMaxSize);
+    ::SetDlgItemInt(m_hWnd, IDC_MIN_WIDTH, (UINT)sizeConstraints.minWidth, TRUE);
+    ::SetDlgItemInt(m_hWnd, IDC_MIN_HEIGHT, (UINT)sizeConstraints.minHeight, TRUE);
+    ::SetDlgItemInt(m_hWnd, IDC_MAX_WIDTH, (UINT)sizeConstraints.maxWidth, TRUE);
+    ::SetDlgItemInt(m_hWnd, IDC_MAX_HEIGHT, (UINT)sizeConstraints.maxHeight, TRUE);
 }
 
 void UIPrefMainWindowDialog::SaveUIState()
@@ -136,6 +199,16 @@ void UIPrefMainWindowDialog::SaveUIState()
 
     auto& captionSettings = OpenHacksVars::PseudoCaptionSettings.get_value();
     ReadPseudoCaptionSettingFromControls(m_hWnd, captionSettings);
+
+    // Save window size constraints
+    auto& sizeConstraints = OpenHacksVars::WindowSizeConstraintsSettings.get_value();
+    sizeConstraints.disableSizing = uButton_GetCheck(m_hWnd, IDC_DISABLE_SIZING);
+    sizeConstraints.enableMinSize = uButton_GetCheck(m_hWnd, IDC_ENABLE_MIN_SIZE);
+    sizeConstraints.enableMaxSize = uButton_GetCheck(m_hWnd, IDC_ENABLE_MAX_SIZE);
+    sizeConstraints.minWidth = static_cast<int32_t>(GetDlgItemInt(IDC_MIN_WIDTH, nullptr, TRUE));
+    sizeConstraints.minHeight = static_cast<int32_t>(GetDlgItemInt(IDC_MIN_HEIGHT, nullptr, TRUE));
+    sizeConstraints.maxWidth = static_cast<int32_t>(GetDlgItemInt(IDC_MAX_WIDTH, nullptr, TRUE));
+    sizeConstraints.maxHeight = static_cast<int32_t>(GetDlgItemInt(IDC_MAX_HEIGHT, nullptr, TRUE));
 }
 
 void UIPrefMainWindowDialog::UpdateCtrlState()
@@ -165,12 +238,34 @@ void UIPrefMainWindowDialog::UpdateCtrlState()
     const bool heightState = allowState && (topState == false || bottomState == false);
     ::EnableWindow(GetDlgItem(IDC_STATIC_HEIGHT), heightState);
     ::EnableWindow(GetDlgItem(IDC_EDIT_HEIGHT), heightState);
+
+    // Window size constraints controls
+    const bool minSizeEnabled = uButton_GetCheck(m_hWnd, IDC_ENABLE_MIN_SIZE);
+    ::EnableWindow(GetDlgItem(IDC_STATIC_MIN_WIDTH), minSizeEnabled);
+    ::EnableWindow(GetDlgItem(IDC_MIN_WIDTH), minSizeEnabled);
+    ::EnableWindow(GetDlgItem(IDC_SPIN_MIN_WIDTH), minSizeEnabled);
+    ::EnableWindow(GetDlgItem(IDC_USE_CUR_MIN_WIDTH), minSizeEnabled);
+    ::EnableWindow(GetDlgItem(IDC_STATIC_MIN_HEIGHT), minSizeEnabled);
+    ::EnableWindow(GetDlgItem(IDC_MIN_HEIGHT), minSizeEnabled);
+    ::EnableWindow(GetDlgItem(IDC_SPIN_MIN_HEIGHT), minSizeEnabled);
+    ::EnableWindow(GetDlgItem(IDC_USE_CUR_MIN_HEIGHT), minSizeEnabled);
+
+    const bool maxSizeEnabled = uButton_GetCheck(m_hWnd, IDC_ENABLE_MAX_SIZE);
+    ::EnableWindow(GetDlgItem(IDC_STATIC_MAX_WIDTH), maxSizeEnabled);
+    ::EnableWindow(GetDlgItem(IDC_MAX_WIDTH), maxSizeEnabled);
+    ::EnableWindow(GetDlgItem(IDC_SPIN_MAX_WIDTH), maxSizeEnabled);
+    ::EnableWindow(GetDlgItem(IDC_USE_CUR_MAX_WIDTH), maxSizeEnabled);
+    ::EnableWindow(GetDlgItem(IDC_STATIC_MAX_HEIGHT), maxSizeEnabled);
+    ::EnableWindow(GetDlgItem(IDC_MAX_HEIGHT), maxSizeEnabled);
+    ::EnableWindow(GetDlgItem(IDC_SPIN_MAX_HEIGHT), maxSizeEnabled);
+    ::EnableWindow(GetDlgItem(IDC_USE_CUR_MAX_HEIGHT), maxSizeEnabled);
 }
 
 void UIPrefMainWindowDialog::ApplySettings()
 {
     auto& api = OpenHacksCore::Get();
     api.ApplyMainWindowFrameStyle(static_cast<WindowFrameStyle>((int32_t)OpenHacksVars::MainWindowFrameStyle));
+    api.ApplyWindowSizeConstraints();
 }
 
 void UIPrefMainWindowDialog::ShowOrHidePseudoCaptionOverlayAutomatically()
