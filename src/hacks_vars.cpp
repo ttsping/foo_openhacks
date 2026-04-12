@@ -29,7 +29,7 @@ uint32_t DPI = USER_DEFAULT_SCREEN_DPI;
 
 void InitialseOpenHacksVars()
 {
-    auto& pseudoCaption = PseudoCaptionSettings.get_value();
+    auto& pseudoCaption = PseudoCaption();
     if (pseudoCaption.height == 0)
     {
         auto height = Utility::GetSystemMetricsForDpi(SM_CYCAPTION, Utility::GetDPI(HWND_DESKTOP));

@@ -33,7 +33,7 @@ void OpenHacksCore::Initialize()
     if (HWND window = core_api::get_main_window())
     {
         // Restore saved window state from persistent storage
-        auto& savedWindowData = OpenHacksVars::SavedWindowState.get_value();
+        auto& savedWindowData = OpenHacksVars::SavedWindowStateRef();
         if (savedWindowData.wp.rcNormalPosition.right > savedWindowData.wp.rcNormalPosition.left &&
             savedWindowData.wp.rcNormalPosition.bottom > savedWindowData.wp.rcNormalPosition.top)
         {
@@ -218,7 +218,7 @@ void OpenHacksCore::Maximize()
         mSavedWindowState.emplace();
     Utility::Maximize(mainWindow, mSavedWindowState.value());
     // Save to persistent storage
-    OpenHacksVars::SavedWindowState.get_value().FromWindowState(mSavedWindowState.value());
+    OpenHacksVars::SavedWindowStateRef().FromWindowState(mSavedWindowState.value());
 }
 
 void OpenHacksCore::Restore()
@@ -234,7 +234,7 @@ void OpenHacksCore::Restore()
         Utility::Restore(mainWindow, mSavedWindowState.value());
         mSavedWindowState.reset();
         // Clear persistent storage
-        OpenHacksVars::SavedWindowState.get_value() = WindowStateData();
+        OpenHacksVars::SavedWindowStateRef() = WindowStateData();
     }
     else
     {
@@ -265,7 +265,7 @@ void OpenHacksCore::EnterFullscreen()
     Utility::EnterFullscreen(mainWindow, mSavedWindowState.value());
 
     // Mark fullscreen state in persistent storage
-    OpenHacksVars::SavedWindowState.get_value().FromWindowState(state);
+    OpenHacksVars::SavedWindowStateRef().FromWindowState(state);
 }
 
 void OpenHacksCore::ExitFullscreen()
@@ -278,7 +278,7 @@ void OpenHacksCore::ExitFullscreen()
         mSavedWindowState.reset();
 
         // Clear fullscreen state in persistent storage
-        OpenHacksVars::SavedWindowState.get_value() = WindowStateData();
+        OpenHacksVars::SavedWindowStateRef() = WindowStateData();
     }
     else
     {

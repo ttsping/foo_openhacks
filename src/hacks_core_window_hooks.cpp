@@ -190,7 +190,7 @@ void OpenHacksCore::OnHookLButtonDown(LPMSG msg)
         const POINT pt = {GET_X_LPARAM(messagePos), GET_Y_LPARAM(messagePos)};
 
         // simulate move (drag window via pseudo caption area)
-        const auto& pseudoCaption = OpenHacksVars::PseudoCaptionSettings.get_value();
+        const auto& pseudoCaption = OpenHacksVars::PseudoCaption();
         Rect rectPseudoCaption = pseudoCaption.ToRect(mMainWindow);
         if (rectPseudoCaption.IsPointIn(pt))
         {

@@ -42,7 +42,7 @@ bool OpenHacksCore::OnSysCommand(HWND wnd, WPARAM wp, LPARAM lp)
 LRESULT OpenHacksCore::OnNCHitTest(HWND wnd, WPARAM wp, LPARAM lp)
 {
     // Disable sizing border hit tests if configured
-    if (OpenHacksVars::WindowSizeConstraintsSettings.get_value().disableSizing)
+    if (OpenHacksVars::WindowConstraints().disableSizing)
     {
         LRESULT result = CallWindowProc(mMainWindowOriginProc, wnd, WM_NCHITTEST, wp, lp);
         // Convert sizing hit tests to border/client
@@ -119,7 +119,7 @@ LRESULT OpenHacksCore::OpenHacksMainWindowProc(HWND wnd, UINT msg, WPARAM wp, LP
         if (OnSysCommand(wnd, wp, lp))
             return 0;
         // Disable sizing if configured
-        if (OpenHacksVars::WindowSizeConstraintsSettings.get_value().disableSizing)
+        if (OpenHacksVars::WindowConstraints().disableSizing)
         {
             const auto cmd = static_cast<UINT>(wp & 0xFFF0);
             if (cmd == SC_SIZE || cmd == SC_MAXIMIZE)
@@ -128,7 +128,7 @@ LRESULT OpenHacksCore::OpenHacksMainWindowProc(HWND wnd, UINT msg, WPARAM wp, LP
         break;
 
     case WM_NCHITTEST:
-        if (OpenHacksVars::WindowSizeConstraintsSettings.get_value().disableSizing ||
+        if (OpenHacksVars::WindowConstraints().disableSizing ||
             OpenHacksVars::MainWindowFrameStyle == WindowFrameStyleNoBorder)
             return OnNCHitTest(wnd, wp, lp);
         break;
@@ -164,7 +164,7 @@ LRESULT OpenHacksCore::OpenHacksMainWindowProc(HWND wnd, UINT msg, WPARAM wp, LP
 
     case WM_GETMINMAXINFO:
         {
-            const auto& constraints = OpenHacksVars::WindowSizeConstraintsSettings.get_value();
+            const auto& constraints = OpenHacksVars::WindowConstraints();
             auto* minmaxInfo = (MINMAXINFO*)lp;
             // Apply minimum size constraints
             if (constraints.enableMinSize)

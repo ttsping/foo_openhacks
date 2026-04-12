@@ -148,6 +148,22 @@ extern cfg_struct_t<WindowSizeConstraints> WindowSizeConstraintsSettings;
 // runtime vars
 extern uint32_t DPI;
 
+// Convenient access functions for config structs
+inline PseudoCaptionParam& PseudoCaption()
+{
+    return PseudoCaptionSettings.get_value();
+}
+
+inline WindowStateData& SavedWindowStateRef()
+{
+    return SavedWindowState.get_value();
+}
+
+inline WindowSizeConstraints& WindowConstraints()
+{
+    return WindowSizeConstraintsSettings.get_value();
+}
+
 FORCEINLINE void ToggleShowMainMenu()
 {
     ShowMainMenu = !ShowMainMenu;

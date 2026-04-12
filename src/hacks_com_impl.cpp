@@ -154,129 +154,129 @@ STDMETHODIMP OpenHacksCOM::ToggleFullscreen()
 STDMETHODIMP OpenHacksCOM::get_PseudoCaptionLeft(LONG* pValue)
 {
     RETURN_HR_IF(pValue == nullptr, E_POINTER);
-    *pValue = static_cast<LONG>(OpenHacksVars::PseudoCaptionSettings.get_value().left);
+    *pValue = static_cast<LONG>(OpenHacksVars::PseudoCaption().left);
     return S_OK;
 }
 
 STDMETHODIMP OpenHacksCOM::put_PseudoCaptionLeft(LONG value)
 {
-    OpenHacksVars::PseudoCaptionSettings.get_value().left = value;
+    OpenHacksVars::PseudoCaption().left = value;
     return S_OK;
 }
 
 STDMETHODIMP OpenHacksCOM::get_PseudoCaptionTop(LONG* pValue)
 {
     RETURN_HR_IF(pValue == nullptr, E_POINTER);
-    *pValue = static_cast<LONG>(OpenHacksVars::PseudoCaptionSettings.get_value().top);
+    *pValue = static_cast<LONG>(OpenHacksVars::PseudoCaption().top);
     return S_OK;
 }
 
 STDMETHODIMP OpenHacksCOM::put_PseudoCaptionTop(LONG value)
 {
-    OpenHacksVars::PseudoCaptionSettings.get_value().top = value;
+    OpenHacksVars::PseudoCaption().top = value;
     return S_OK;
 }
 
 STDMETHODIMP OpenHacksCOM::get_PseudoCaptionRight(LONG* pValue)
 {
     RETURN_HR_IF(pValue == nullptr, E_POINTER);
-    *pValue = static_cast<LONG>(OpenHacksVars::PseudoCaptionSettings.get_value().right);
+    *pValue = static_cast<LONG>(OpenHacksVars::PseudoCaption().right);
     return S_OK;
 }
 
 STDMETHODIMP OpenHacksCOM::put_PseudoCaptionRight(LONG value)
 {
-    OpenHacksVars::PseudoCaptionSettings.get_value().right = value;
+    OpenHacksVars::PseudoCaption().right = value;
     return S_OK;
 }
 
 STDMETHODIMP OpenHacksCOM::get_PseudoCaptionBottom(LONG* pValue)
 {
     RETURN_HR_IF(pValue == nullptr, E_POINTER);
-    *pValue = static_cast<LONG>(OpenHacksVars::PseudoCaptionSettings.get_value().bottom);
+    *pValue = static_cast<LONG>(OpenHacksVars::PseudoCaption().bottom);
     return S_OK;
 }
 
 STDMETHODIMP OpenHacksCOM::put_PseudoCaptionBottom(LONG value)
 {
-    OpenHacksVars::PseudoCaptionSettings.get_value().bottom = value;
+    OpenHacksVars::PseudoCaption().bottom = value;
     return S_OK;
 }
 
 STDMETHODIMP OpenHacksCOM::get_PseudoCaptionWidth(LONG* pValue)
 {
     RETURN_HR_IF(pValue == nullptr, E_POINTER);
-    *pValue = static_cast<LONG>(OpenHacksVars::PseudoCaptionSettings.get_value().width);
+    *pValue = static_cast<LONG>(OpenHacksVars::PseudoCaption().width);
     return S_OK;
 }
 
 STDMETHODIMP OpenHacksCOM::put_PseudoCaptionWidth(LONG value)
 {
-    OpenHacksVars::PseudoCaptionSettings.get_value().width = value;
+    OpenHacksVars::PseudoCaption().width = value;
     return S_OK;
 }
 
 STDMETHODIMP OpenHacksCOM::get_PseudoCaptionHeight(LONG* pValue)
 {
     RETURN_HR_IF(pValue == nullptr, E_POINTER);
-    *pValue = static_cast<LONG>(OpenHacksVars::PseudoCaptionSettings.get_value().height);
+    *pValue = static_cast<LONG>(OpenHacksVars::PseudoCaption().height);
     return S_OK;
 }
 
 STDMETHODIMP OpenHacksCOM::put_PseudoCaptionHeight(LONG value)
 {
-    OpenHacksVars::PseudoCaptionSettings.get_value().height = value;
+    OpenHacksVars::PseudoCaption().height = value;
     return S_OK;
 }
 
 STDMETHODIMP OpenHacksCOM::get_PseudoCaptionLeftEnabled(VARIANT_BOOL* pValue)
 {
     RETURN_HR_IF(pValue == nullptr, E_POINTER);
-    *pValue = TO_VARIANT_BOOL(OpenHacksVars::PseudoCaptionSettings.get_value().marginStates.left);
+    *pValue = TO_VARIANT_BOOL(OpenHacksVars::PseudoCaption().marginStates.left);
     return S_OK;
 }
 
 STDMETHODIMP OpenHacksCOM::put_PseudoCaptionLeftEnabled(VARIANT_BOOL value)
 {
-    OpenHacksVars::PseudoCaptionSettings.get_value().marginStates.left = TO_BOOLEAN(value);
+    OpenHacksVars::PseudoCaption().marginStates.left = TO_BOOLEAN(value);
     return S_OK;
 }
 
 STDMETHODIMP OpenHacksCOM::get_PseudoCaptionTopEnabled(VARIANT_BOOL* pValue)
 {
     RETURN_HR_IF(pValue == nullptr, E_POINTER);
-    *pValue = TO_VARIANT_BOOL(OpenHacksVars::PseudoCaptionSettings.get_value().marginStates.top);
+    *pValue = TO_VARIANT_BOOL(OpenHacksVars::PseudoCaption().marginStates.top);
     return S_OK;
 }
 
 STDMETHODIMP OpenHacksCOM::put_PseudoCaptionTopEnabled(VARIANT_BOOL value)
 {
-    OpenHacksVars::PseudoCaptionSettings.get_value().marginStates.top = TO_BOOLEAN(value);
+    OpenHacksVars::PseudoCaption().marginStates.top = TO_BOOLEAN(value);
     return S_OK;
 }
 
 STDMETHODIMP OpenHacksCOM::get_PseudoCaptionRightEnabled(VARIANT_BOOL* pValue)
 {
     RETURN_HR_IF(pValue == nullptr, E_POINTER);
-    *pValue = TO_VARIANT_BOOL(OpenHacksVars::PseudoCaptionSettings.get_value().marginStates.right);
+    *pValue = TO_VARIANT_BOOL(OpenHacksVars::PseudoCaption().marginStates.right);
     return S_OK;
 }
 
 STDMETHODIMP OpenHacksCOM::put_PseudoCaptionRightEnabled(VARIANT_BOOL value)
 {
-    OpenHacksVars::PseudoCaptionSettings.get_value().marginStates.right = TO_BOOLEAN(value);
+    OpenHacksVars::PseudoCaption().marginStates.right = TO_BOOLEAN(value);
     return S_OK;
 }
 
 STDMETHODIMP OpenHacksCOM::get_PseudoCaptionBottomEnabled(VARIANT_BOOL* pValue)
 {
     RETURN_HR_IF(pValue == nullptr, E_POINTER);
-    *pValue = TO_VARIANT_BOOL(OpenHacksVars::PseudoCaptionSettings.get_value().marginStates.bottom);
+    *pValue = TO_VARIANT_BOOL(OpenHacksVars::PseudoCaption().marginStates.bottom);
     return S_OK;
 }
 
 STDMETHODIMP OpenHacksCOM::put_PseudoCaptionBottomEnabled(VARIANT_BOOL value)
 {
-    OpenHacksVars::PseudoCaptionSettings.get_value().marginStates.bottom = TO_BOOLEAN(value);
+    OpenHacksVars::PseudoCaption().marginStates.bottom = TO_BOOLEAN(value);
     return S_OK;
 }

@@ -170,7 +170,7 @@ void UIPrefMainWindowDialog::LoadUIState()
         ::SetDlgItemInt(dlg, editId, (UINT)value, TRUE);
     };
 
-    const auto& pseudoCaption = OpenHacksVars::PseudoCaptionSettings.get_value();
+    const auto& pseudoCaption = OpenHacksVars::PseudoCaption();
     const auto& marginStates = pseudoCaption.marginStates;
     SetupControl(IDC_CHECK_LEFT, IDC_EDIT_LEFT, IDC_SPIN_LEFT, marginStates.left, pseudoCaption.left);
     SetupControl(IDC_CHECK_TOP, IDC_EDIT_TOP, IDC_SPIN_TOP, marginStates.top, pseudoCaption.top);
@@ -180,7 +180,7 @@ void UIPrefMainWindowDialog::LoadUIState()
     SetupControl(0, IDC_EDIT_HEIGHT, IDC_SPIN_HEIGHT, false, pseudoCaption.height);
 
     // Load window size constraints
-    const auto& sizeConstraints = OpenHacksVars::WindowSizeConstraintsSettings.get_value();
+    const auto& sizeConstraints = OpenHacksVars::WindowConstraints();
     uButton_SetCheck(m_hWnd, IDC_DISABLE_SIZING, sizeConstraints.disableSizing);
     uButton_SetCheck(m_hWnd, IDC_ENABLE_MIN_SIZE, sizeConstraints.enableMinSize);
     uButton_SetCheck(m_hWnd, IDC_ENABLE_MAX_SIZE, sizeConstraints.enableMaxSize);
@@ -197,11 +197,11 @@ void UIPrefMainWindowDialog::SaveUIState()
         OpenHacksVars::MainWindowFrameStyle = curSel;
     }
 
-    auto& captionSettings = OpenHacksVars::PseudoCaptionSettings.get_value();
+    auto& captionSettings = OpenHacksVars::PseudoCaption();
     ReadPseudoCaptionSettingFromControls(m_hWnd, captionSettings);
 
     // Save window size constraints
-    auto& sizeConstraints = OpenHacksVars::WindowSizeConstraintsSettings.get_value();
+    auto& sizeConstraints = OpenHacksVars::WindowConstraints();
     sizeConstraints.disableSizing = uButton_GetCheck(m_hWnd, IDC_DISABLE_SIZING);
     sizeConstraints.enableMinSize = uButton_GetCheck(m_hWnd, IDC_ENABLE_MIN_SIZE);
     sizeConstraints.enableMaxSize = uButton_GetCheck(m_hWnd, IDC_ENABLE_MAX_SIZE);
