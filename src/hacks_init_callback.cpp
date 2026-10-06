@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "hacks_core.h"
 #include "hacks_vars.h"
+#include "hacks_log.h"
+#include "hacks_external_assemblies.h"
 
 namespace
 {
@@ -13,6 +15,7 @@ public:
         if (stage == init_stages::after_config_read)
         {
             OpenHacksVars::InitialseOpenHacksVars();
+            OpenHacksLog::Initialize();
         }
         else if (stage == init_stages::before_ui_init)
         {
@@ -21,6 +24,9 @@ public:
 
             if (!OpenHacksCore::Get().InstallWindowHooks())
                 return;
+
+            // Load external COM assemblies
+            ExternalAssemblyLoader::LoadAll();
         }
     }
 };
@@ -36,7 +42,6 @@ public:
     // on_quit is called before the main window is destroyed.
     void on_quit() override
     {
-        // safe to clean up
         OpenHacksCore::Get().Finalize();
     }
 };

@@ -1,23 +1,91 @@
 #include "pch.h"
 #include "hacks_com_impl.h"
 #include <minhook.h>
+#include "hacks_external_assemblies.h"
+#include "hacks_log.h"
 
 namespace
 {
 static auto OriginCLSIDFromProgID = CLSIDFromProgID;
+static auto OriginLoadRegTypeLib = LoadRegTypeLib;
+
+struct ProgIDCaseInsensitiveLess
+{
+    bool operator()(const std::wstring& lhs, const std::wstring& rhs) const
+    {
+        return _wcsicmp(lhs.c_str(), rhs.c_str()) < 0;
+    }
+};
+static std::map<std::wstring, CLSID, ProgIDCaseInsensitiveLess> StaticExternalProgIDMap;
+static std::recursive_mutex StaticExternalProgIDMapMutex;
 
 STDMETHODIMP HacksCLSIDFromProgID(LPCOLESTR lpszProgID, LPCLSID lpclsid)
 {
-    if (lpszProgID != nullptr && lpclsid != nullptr && _wcsicmp(lpszProgID, OpenHacksCOM::PROGID_OpenHacks) == 0)
+    if (lpszProgID != nullptr && lpclsid != nullptr)
     {
-        *lpclsid = __uuidof(OpenHacksCOM);
-        return S_OK;
+        if (_wcsicmp(lpszProgID, OpenHacksCOM::PROGID_OpenHacks) == 0)
+        {
+            *lpclsid = __uuidof(OpenHacksCOM);
+            return S_OK;
+        }
+
+        std::lock_guard<std::recursive_mutex> lock(StaticExternalProgIDMapMutex);
+        auto it = StaticExternalProgIDMap.find(lpszProgID);
+        if (it != StaticExternalProgIDMap.end())
+        {
+            *lpclsid = it->second;
+            return S_OK;
+        }
     }
 
-    return OriginCLSIDFromProgID ? OriginCLSIDFromProgID(lpszProgID, lpclsid) : REGDB_E_CLASSNOTREG;
+    HRESULT hr = OriginCLSIDFromProgID ? OriginCLSIDFromProgID(lpszProgID, lpclsid) : REGDB_E_CLASSNOTREG;
+    if (FAILED(hr) && lpszProgID != nullptr)
+    {
+        LOGD("CLSIDFromProgID(\"%S\") not resolved: hr=0x%08X", lpszProgID, (unsigned)hr);
+    }
+    return hr;
+}
+
+STDMETHODIMP HacksLoadRegTypeLib(REFGUID rguid, WORD wVerMajor, WORD wVerMinor, LCID lcid, ITypeLib** pptlib)
+{
+    if (pptlib != nullptr)
+    {
+        LPOLESTR clsidStr = nullptr;
+        if (SUCCEEDED(StringFromCLSID(rguid, &clsidStr)) && clsidStr != nullptr)
+        {
+            ITypeLib* pTypeLib = GetExternalTypeLib(clsidStr);
+            if (pTypeLib != nullptr)
+            {
+                *pptlib = pTypeLib;
+                (*pptlib)->AddRef();
+                CoTaskMemFree(clsidStr);
+                return S_OK;
+            }
+            CoTaskMemFree(clsidStr);
+        }
+    }
+
+    return OriginLoadRegTypeLib ? OriginLoadRegTypeLib(rguid, wVerMajor, wVerMinor, lcid, pptlib) : TYPE_E_LIBNOTREGISTERED;
+}
+
+void AddExternalProgIDMapping(const char* progId, const char* clsidStr)
+{
+    CLSID clsid = {};
+    auto clsidWide = Utility::ToUTF16(clsidStr);
+    if (SUCCEEDED(CLSIDFromString(clsidWide.c_str(), &clsid)))
+    {
+        auto progIdWide = Utility::ToUTF16(progId);
+        std::lock_guard<std::recursive_mutex> lock(StaticExternalProgIDMapMutex);
+        StaticExternalProgIDMap[progIdWide] = clsid;
+    }
 }
 
 } // namespace
+
+void AddExternalCOMProgIDMapping(const char* progId, const char* clsid)
+{
+    AddExternalProgIDMapping(progId, clsid);
+}
 
 OpenHacksCOM::OpenHacksCOM()
 {
@@ -70,6 +138,7 @@ HRESULT OpenHacksCOM::UnregisterOpenHacksObject()
 
 HRESULT OpenHacksCOM::Finalise()
 {
+    MH_Uninitialize();
     return UnregisterOpenHacksObject();
 }
 
@@ -78,10 +147,20 @@ HRESULT OpenHacksCOM::HookCLSIDFromProgID()
     MH_STATUS status = MH_UNKNOWN;
     if (MH_Initialize() == MH_OK)
     {
+        // Hook CLSIDFromProgID for ProgID resolution
         status = MH_CreateHook(&CLSIDFromProgID, &HacksCLSIDFromProgID, reinterpret_cast<void**>(&OriginCLSIDFromProgID));
 
         if (status == MH_OK)
             status = MH_EnableHook(&CLSIDFromProgID);
+
+        // Hook LoadRegTypeLib for type library resolution (for external COM components)
+        if (status == MH_OK)
+        {
+            status = MH_CreateHook(&LoadRegTypeLib, &HacksLoadRegTypeLib, reinterpret_cast<void**>(&OriginLoadRegTypeLib));
+
+            if (status == MH_OK)
+                status = MH_EnableHook(&LoadRegTypeLib);
+        }
 
         if (status != MH_OK)
             MH_Uninitialize();
