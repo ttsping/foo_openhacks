@@ -2,6 +2,8 @@
 *.user
 [Bb]in/
 [Tt]emp/
+docs/
+analysis/
 .vs/
 ipch/
 JSON/
