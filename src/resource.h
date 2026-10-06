@@ -2,8 +2,9 @@
 // Microsoft Visual C++ generated include file.
 // Used by foo_openhacks.rc
 //
-#define IDD_PREF_ADVANCED               101
+#define IDD_PREF_ADVANCED_DUI           101
 #define IDD_PREF_MAINWINDOW             102
+#define IDD_PREF_ADVANCED               103
 #define IDC_PREF_HEADER1                1001
 #define IDC_PREF_HEADER2                1002
 #define IDC_PREF_HEADER3                1003
@@ -40,26 +41,27 @@
 #define IDC_SPIN_MIN_WIDTH              1036
 #define IDC_USE_CUR_MIN_WIDTH           1037
 #define IDC_STATIC_MAX_WIDTH            1038
-#define IDC_MAX_WIDTH                   1039
-#define IDC_SPIN_MAX_WIDTH              1040
-#define IDC_USE_CUR_MAX_WIDTH           1041
-#define IDC_STATIC_MIN_WIDTH2           1042
-#define IDC_STATIC_MIN_HEIGHT           1042
-#define IDC_MIN_HEIGHT                  1043
-#define IDC_SPIN_MIN_HEIGHT             1044
-#define IDC_USE_CUR_MIN_HEIGHT          1045
-#define IDC_STATIC_MAX_HEIGHT           1046
-#define IDC_MAX_HEIGHT                  1047
-#define IDC_SPIN_MAX_HEIGHT             1048
-#define IDC_USE_CUR_MAX_HEIGHT          1049
+#define IDC_LIST_PROPERTIES             1039
+#define IDC_MAX_WIDTH                   1040
+#define IDC_SPIN_MAX_WIDTH              1041
+#define IDC_USE_CUR_MAX_WIDTH           1042
+#define IDC_STATIC_MIN_HEIGHT           1043
+#define IDC_MIN_HEIGHT                  1044
+#define IDC_SPIN_MIN_HEIGHT             1045
+#define IDC_USE_CUR_MIN_HEIGHT          1046
+#define IDC_STATIC_MAX_HEIGHT           1047
+#define IDC_MAX_HEIGHT                  1048
+#define IDC_SPIN_MAX_HEIGHT             1049
+#define IDC_USE_CUR_MAX_HEIGHT          1050
+#define IDC_DESC                        1051
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        103
+#define _APS_NEXT_RESOURCE_VALUE        106
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1038
+#define _APS_NEXT_CONTROL_VALUE         1052
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -189,13 +189,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="base_window.h" />
+    <ClInclude Include="advanced_settings.h" />
     <ClInclude Include="com_utils.h" />
     <ClInclude Include="hacks_com_impl.h" />
     <ClInclude Include="str.h" />
+    <ClInclude Include="ui\ui_pref_advanced_dui.h" />
     <ClInclude Include="ui_overlay_window.h" />
     <ClInclude Include="win32_utils.h" />
     <ClInclude Include="hacks_core.h" />
     <ClInclude Include="hacks_guids.h" />
+    <ClInclude Include="hacks_log.h" />
     <ClInclude Include="hacks_priv.h" />
     <ClInclude Include="hacks_menu.h" />
     <ClInclude Include="hacks_vars.h" />
@@ -205,22 +208,26 @@
     <ClInclude Include="ui\preferences_page_impl.h" />
     <ClInclude Include="ui\ui_dark_mode.h" />
     <ClInclude Include="ui\ui_dialog_base.h" />
+    <ClInclude Include="ui\ui_list_control_ex.h" />
     <ClInclude Include="ui\ui_pref_advanced.h" />
     <ClInclude Include="ui\ui_pref_main_window.h" />
     <ClInclude Include="win32_types.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="advanced_settings.cpp" />
     <ClCompile Include="base_window.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="hacks_com_impl.cpp" />
     <ClCompile Include="hacks_com_impl2.cpp" />
     <ClCompile Include="hacks_core_rebar_proc.cpp" />
     <ClCompile Include="str.cpp" />
+    <ClCompile Include="ui\ui_pref_advanced_dui.cpp" />
     <ClCompile Include="ui_overlay_window.cpp" />
     <ClCompile Include="win32_utils.cpp" />
     <ClCompile Include="hacks_core.cpp" />
     <ClCompile Include="hacks_core_status_bar_proc.cpp" />
     <ClCompile Include="hacks_core_window_hooks.cpp" />
+    <ClCompile Include="hacks_log.cpp" />
     <ClCompile Include="hacks_main_menu.cpp" />
     <ClCompile Include="hacks_core_main_window_proc.cpp" />
     <ClCompile Include="hacks_menu.cpp" />
@@ -235,6 +242,7 @@
     </ClCompile>
     <ClCompile Include="ui\ui_dark_mode.cpp" />
     <ClCompile Include="ui\ui_dialog_base.cpp" />
+    <ClCompile Include="ui\ui_list_control_ex.cpp" />
     <ClCompile Include="ui\ui_pref_advanced.cpp" />
     <ClCompile Include="ui\ui_pref_main_window.cpp" />
   </ItemGroup>

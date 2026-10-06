@@ -1,9 +1,15 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <ClCompile Include="advanced_settings.cpp">
+      <Filter>Modules</Filter>
+    </ClCompile>
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="ui\ui_dialog_base.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\ui_list_control_ex.cpp">
       <Filter>UI</Filter>
     </ClCompile>
     <ClCompile Include="ui\ui_pref_advanced.cpp">
@@ -63,8 +69,15 @@
     <ClCompile Include="hacks_com_impl2.cpp">
       <Filter>COM</Filter>
     </ClCompile>
+    <ClCompile Include="ui\ui_pref_advanced_dui.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="hacks_log.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="advanced_settings.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
     <ClInclude Include="hacks_priv.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="ui\ui_dialog_base.h">
@@ -72,6 +85,9 @@
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\ui_list_control_ex.h">
+      <Filter>UI</Filter>
     </ClInclude>
     <ClInclude Include="ui\ui_pref_advanced.h">
       <Filter>UI</Filter>
@@ -122,6 +138,10 @@
     <ClInclude Include="hacks_version.h">
       <Filter>Modules</Filter>
     </ClInclude>
+    <ClInclude Include="ui\ui_pref_advanced_dui.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="hacks_log.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Resources">
