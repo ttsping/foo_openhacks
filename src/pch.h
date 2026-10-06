@@ -12,6 +12,8 @@
 #define NTDDI_VERSION 0x0A000002 // NTDDI_WIN10_RS1
 
 #define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+
 // workaround for STL mutex changes.
 // https://github.com/microsoft/STL/wiki/Changelog#vs-2022-1710
 #ifndef _DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR
@@ -31,8 +33,24 @@
 #include <atlcrack.h>
 #include <atlmisc.h>
 
+#include <shlwapi.h>
+#include <mmsystem.h>
+#include <wrl/client.h>
+#include <map>
+#include <vector>
+#include <mutex>
+#include <string>
+#include <memory>
+
 #include <foobar2000/SDK/foobar2000-all.h>
-#include "win32_types.h"
 #include "hacks_priv.h"
+#include "str.h"
+#include "win32_types.h"
+#include "win32_utils.h"
+
+#pragma comment(lib, "winmm.lib")
+#pragma comment(lib, "shlwapi.lib")
+
+using namespace Microsoft::WRL;
 
 #endif // PCH_H
