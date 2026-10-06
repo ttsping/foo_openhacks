@@ -11,7 +11,7 @@
 #define _STR(x) #x
 #define STRINGIFY(x) _STR(x)
 
-using memeory_block_t = std::vector<uint8_t>;
+using memory_block_t = std::vector<uint8_t>;
 using string_t = std::string;
 using string_view_t = std::string_view;
 using wstring_t = std::wstring;
